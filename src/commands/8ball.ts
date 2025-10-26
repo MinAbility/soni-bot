@@ -2,6 +2,7 @@ import {ChatInputCommandInteraction, Message, SlashCommandBuilder} from 'discord
 import { responses } from '../responses/8ball.json';
 import type { Command } from '../types/Command';
 import type Client from '../util/Client';
+import {CONSTANTS} from '../util/config';
 import Logger from '../util/Logger';
 
 // noinspection JSUnusedGlobalSymbols
@@ -46,13 +47,28 @@ export default class EightBall implements Command
      */
     async execute(i: ChatInputCommandInteraction<'cached'>): Promise<Message>
     {
+        const question = i.options.getString('question', true);
+
+        // Make sure content is within a reasonable length limit
+        if (question.length > 1000) return await i.editReply({ embeds: [
+            this.client.defaultEmbed()
+                .setColor(CONSTANTS.COLORS.warning)
+                .setTitle('An error occurred')
+                .addFields([
+                    {
+                        name: 'Invalid Question',
+                        value: 'The question cannot exceed 1000 characters'
+                    }
+                ])
+        ] });
+
         return await i.editReply({ embeds: [
             this.client.defaultEmbed()
                 .setTitle('8ball result')
                 .addFields([
                     {
                         name: "Question",
-                        value: i.options.getString("question", true)
+                        value: question
                     },
                     {
                         name: "Answer",
